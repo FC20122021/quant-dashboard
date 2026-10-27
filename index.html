@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e1116">
+<title>市场 & 交易同步看板 · 2026-10-23</title>
+<style>
+:root{
+  --bg:#0e1116; --card:#161a22; --line:#242b36; --txt:#e6edf3; --dim:#8b98a9;
+  --up:#e0384a; --down:#2eb872; --flat:#6b7684; --accent:#4c8dff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",
+  "Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
+.wrap{max-width:1280px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:4px 0 2px}
+h2{font-size:15px;margin:0 0 10px;color:var(--txt);display:flex;align-items:center;gap:8px}
+h2 .tag{font-size:11px;font-weight:400;color:var(--dim);border:1px solid var(--line);
+  border-radius:999px;padding:1px 8px}
+.sub{color:var(--dim);font-size:12px;margin-bottom:14px}
+section{margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(168px,1fr))}
+.tiles{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(104px,1fr))}
+.tile{border-radius:10px;padding:10px 8px;text-align:center;border:1px solid rgba(255,255,255,.06)}
+.tile .tk{font-size:13px;font-weight:600}
+.tile .nm{font-size:11px;color:rgba(255,255,255,.72);margin-top:2px}
+.tile .pc{font-size:16px;font-weight:700;margin-top:6px}
+.mkt{display:flex;flex-direction:column;gap:2px}
+.mkt .tk{font-size:12px;color:var(--dim)}
+.mkt .px{font-size:20px;font-weight:700;line-height:1.2}
+.mkt .pc{font-size:14px;font-weight:600}
+.mkt.is-na{opacity:.72;border-style:dashed}
+.mkt .px.na{font-size:12px;font-weight:500;color:var(--dim);line-height:1.4;margin:6px 0}
+.px-tag{font-size:10px;color:#d6a13a;border:1px solid rgba(214,161,58,.45);
+  border-radius:999px;padding:1px 7px;margin-top:5px;display:inline-block;line-height:1.5}
+.up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--flat)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--dim);font-weight:500;text-align:right}
+th:first-child,td:first-child{text-align:left}
+.tables{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.tables .card{overflow-x:auto}                 /* 手机上五列表格横滑，不撑破卡片 */
+@media (max-width:560px){
+  .wrap{padding:10px}
+  h1{font-size:17px}
+  h2{font-size:14px}
+  .card{padding:11px;border-radius:10px}
+  .grid{grid-template-columns:repeat(auto-fit,minmax(126px,1fr));gap:8px}
+  .tiles{grid-template-columns:repeat(auto-fit,minmax(86px,1fr))}
+  .tables{grid-template-columns:1fr}
+  table{font-size:11px} th,td{padding:5px 6px}
+  .mkt .px{font-size:17px}
+  #sectorTreemap{height:220px!important}
+  #momChart{height:190px!important}
+}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--dim)}
+.chip b{color:var(--txt);font-weight:600}
+.chip .kind{font-size:10px;border-radius:999px;padding:1px 6px;margin-left:6px}
+.chip .k-live{color:#7ee2a8;border:1px solid rgba(126,226,168,.4)}
+.chip .k-snap{color:#d6a13a;border:1px solid rgba(214,161,58,.45)}
+.bar{height:8px;border-radius:6px;background:#222a35;overflow:hidden}
+.bar > i{display:block;height:100%;background:var(--accent)}
+.bars{display:flex;flex-direction:column;gap:6px}
+.brow{display:grid;grid-template-columns:64px 1fr 64px;align-items:center;gap:8px;font-size:12px}
+.note{color:var(--dim);font-size:12px;padding:10px;border:1px dashed var(--line);
+  border-radius:10px;text-align:center}
+.warn{color:#ffb454}
+footer{color:var(--dim);font-size:11px;border-top:1px solid var(--line);
+  padding-top:10px;margin-top:6px;line-height:1.7}
+a{color:var(--accent)}
+@media (max-width:520px){
+  .wrap{padding:10px}
+  .grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+  .tiles{grid-template-columns:repeat(auto-fit,minmax(88px,1fr))}
+  .mkt .px{font-size:17px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>全景市场 &amp; 交易同步看板</h1>
+  <div class="sub">生成时间 2026-10-27 22:00:34｜数据口径：实时优先、降级到本地快照｜
+    信号截至 2026-10-23</div>
+  <div class="note" style="margin:0 0 10px">公开版：已隐藏本金、目标金额/股数与订单明细，仅保留策略判断。</div>
+  <div class="chips" style="margin:0 0 14px"><span class="chip">大盘 <b>2026-10-27</b><span class="kind k-live">实时</span></span><span class="chip">行业 <b>2026-10-27</b><span class="kind k-live">实时</span><span style="color:var(--dim)">　动量截至 2026-10-26</span></span><span class="chip">个股 <b>2026-10-26</b><span class="kind k-snap">收盘</span></span><span class="chip">SPY 走势 <b>2026-10-26</b><span class="kind k-snap">快照</span></span><span class="chip">信号 <b>2026-10-23</b><span class="kind k-live">策略</span></span></div>
+  
+
+  <section>
+    <h2>① 大盘温度计 <span class="tag">Nasdaq / 本地快照</span></h2>
+    <div class="grid" id="marketGrid"></div>
+    <div class="card" style="margin-top:12px">
+      <h2 style="margin-bottom:6px">SPY 近 1 个月走势
+        <span class="tag">Nasdaq（近 22 个交易日）</span></h2>
+      <div id="sparkChart" style="width:100%;height:0"></div>
+      <div id="sparkFallback" style="display:none;height:80px"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>② 行业热力图（11 只 SPDR・当日涨跌）
+      <span class="tag">Nasdaq</span></h2>
+    <div class="card">
+      <div id="sectorTreemap" style="width:100%;height:260px"></div>
+      <div id="sectorTiles" class="tiles" style="display:none"></div>
+      <div class="sub" style="margin:8px 0 0">红涨绿跌，颜色越浓幅度越大。
+        <span class="warn" id="chartNote" style="display:none">
+          （ECharts CDN 未加载成功，已用彩色方块矩阵与 CSS 条形图替代，不影响读数）</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>③ 个股异动榜 <span class="tag">Nasdaq 批量快照（当日成交额 = 最新价 × 成交量）</span></h2>
+    <div class="tables">
+      <div class="card"><h2>涨幅前 10</h2><div id="tblGainers"></div></div>
+      <div class="card"><h2>跌幅前 10</h2><div id="tblLosers"></div></div>
+      <div class="card"><h2>成交额前 10</h2><div id="tblTurnover"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>④ 量化信号与执行</h2>
+    <div class="card">
+      <div class="chips" id="quantChips"></div>
+      <div class="sub" id="quantReason" style="margin-top:8px"></div>
+      <h2 style="margin-top:10px">10 日动量排名（前三高亮）</h2>
+      <div id="momChart" style="width:100%;height:220px"></div>
+      <div id="momBars" class="bars" style="display:none"></div>
+      <h2 style="margin-top:10px">目标持仓</h2>
+      <div id="targetTable"></div>
+      <h2 style="margin-top:10px">订单记录（trade_log.csv）</h2>
+      <div id="orderTable" style="overflow-x:auto"></div>
+    </div>
+  </section>
+
+  <footer>
+    数据来源：yfinance（首选，批量） → Nasdaq 报价（实时兜底） → 仓库本地快照（离线兜底）<br>
+    本地快照口径：日线为<b>不复权收盘价</b>（不含股息）；成交额为 30 日日均（本地）或当日成交金额（实时）。
+    看板只读，不构成下单依据；下单以 <code>spec14</code> 执行器与券商回报为准。
+  </footer>
+</div>
+<script>window.__CDNS__ = ["https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js", "https://unpkg.com/echarts@5.5.0/dist/echarts.min.js"];</script>
+<script>window.__DASH__ = {"meta":{"generated_at":"2026-10-27 22:00:34","asof_note":"2026-10-23","mode_note":"实时优先、降级到本地快照","sources_note":"yfinance（首选，批量） → Nasdaq 报价（实时兜底） → 仓库本地快照（离线兜底）","offline":false,"elapsed_sec":null,"public":true,"market_source_note":"实时优先"},"market":{"ok":true,"rows":[{"ticker":"SPY","label":"标普 500","last":766.15,"chg_pct":0.1,"source":"Nasdaq","proxy":null,"asof_ts":"2026-10-27 9:58 AM ET","data_date":""},{"ticker":"QQQ","label":"纳斯达克 100","last":715.225,"chg_pct":0.42,"source":"Nasdaq","proxy":null,"asof_ts":"2026-10-27 9:58 AM ET","data_date":""},{"ticker":"DIA","label":"道琼斯","last":522.24,"chg_pct":-0.14,"source":"Nasdaq","proxy":null,"asof_ts":"2026-10-27 9:59 AM ET","data_date":""},{"ticker":"IWM","label":"罗素 2000","last":277.28,"chg_pct":0.1,"source":"Nasdaq","proxy":null,"asof_ts":"2026-10-27 9:59 AM ET","data_date":""},{"ticker":"^VIX","label":"恐慌指数","last":18.09,"chg_pct":-3.571428571428581,"source":"spec19 快照","proxy":"UVXY 代理（1.5× VIX 期货）","asof_ts":"","data_date":"2026-10-26"}],"source_note":"Nasdaq / 本地快照","asof":"2026-10-27","kind":"实时"},"spark":{"ok":true,"asof":"2026-10-26","dates":["2026-09-25","2026-09-28","2026-09-29","2026-09-30","2026-10-01","2026-10-02","2026-10-05","2026-10-06","2026-10-07","2026-10-08","2026-10-09","2026-10-12","2026-10-13","2026-10-14","2026-10-15","2026-10-16","2026-10-19","2026-10-20","2026-10-21","2026-10-22","2026-10-23","2026-10-26"],"values":[771.35,765.61,764.2,762.63,763.99,769.64,774.83,779.09,777.22,773.93,778.57,778.1,778.01,769.6,771.79,763.25,766.48,769.05,773.09,763.96,759.97,765.37],"source":"Nasdaq（近 22 个交易日）"},"sectors":{"ok":true,"rows":[{"ticker":"XLK","name":"科技","last":187.73,"chg_pct":0.76,"mom10":-5.113057649215735,"data_date":"2026-10-26"},{"ticker":"XLF","name":"金融","last":55.89,"chg_pct":-0.23,"mom10":1.7620345140781257,"data_date":"2026-10-26"},{"ticker":"XLV","name":"医疗","last":179.2,"chg_pct":-0.04,"mom10":4.2386185243328045,"data_date":"2026-10-26"},{"ticker":"XLY","name":"可选消费","last":114.42,"chg_pct":0.14,"mom10":1.772512692616024,"data_date":"2026-10-26"},{"ticker":"XLP","name":"必选消费","last":87.525,"chg_pct":-0.49,"mom10":4.205662836156843,"data_date":"2026-10-26"},{"ticker":"XLE","name":"能源","last":69.025,"chg_pct":-0.88,"mom10":5.4991667929101595,"data_date":"2026-10-26"},{"ticker":"XLI","name":"工业","last":167.43,"chg_pct":0.28,"mom10":-1.2947088383091887,"data_date":"2026-10-26"},{"ticker":"XLB","name":"材料","last":51.415,"chg_pct":0.07,"mom10":3.9239482200647435,"data_date":"2026-10-26"},{"ticker":"XLRE","name":"房地产","last":42.51,"chg_pct":-0.68,"mom10":2.099236641221358,"data_date":"2026-10-26"},{"ticker":"XLU","name":"公用事业","last":42.555,"chg_pct":0.01,"mom10":2.20994475138121,"data_date":"2026-10-26"},{"ticker":"XLC","name":"通信服务","last":103.32,"chg_pct":-0.51,"mom10":-6.819201435621358,"data_date":"2026-10-26"}],"source":"Nasdaq","history_asof":"2026-10-26","asof":"2026-10-27","kind":"实时"},"movers":{"ok":true,"gainers":[{"ticker":"LITE","name":"Lumentum Holdings Inc.","last":818.1,"chg_pct":8.19,"turnover":4953663402.3},{"ticker":"FIX","name":"Comfort Systems USA Inc.","last":1244.19,"chg_pct":7.178,"turnover":1011776552.19},{"ticker":"P","name":"Everpure Inc. Class A common stock","last":131.33,"chg_pct":6.487,"turnover":477480946.22},{"ticker":"ARM","name":"Arm Holdings plc American Depositary Shares","last":223.35,"chg_pct":6.19,"turnover":1047765002.25},{"ticker":"COHR","name":"Coherent Corp.","last":221.5,"chg_pct":5.834,"turnover":1702477795.0},{"ticker":"SNPS","name":"Synopsys Inc.","last":454.33,"chg_pct":5.624,"turnover":1276909003.56},{"ticker":"BE","name":"Bloom Energy Corporation Class A","last":203.92,"chg_pct":5.494,"turnover":4305299744.8},{"ticker":"AKAM","name":"Akamai Technologies Inc.","last":98.5,"chg_pct":5.314,"turnover":568114510.0},{"ticker":"TSLA","name":"Tesla Inc.","last":391.62,"chg_pct":5.212,"turnover":20791609814.94},{"ticker":"LMT","name":"Lockheed Martin Corporation","last":635.2,"chg_pct":5.134,"turnover":1695414860.8000002}],"losers":[{"ticker":"FICO","name":"Fair Isaac Corporation","last":708.07,"chg_pct":-13.153,"turnover":1743101235.48},{"ticker":"MELI","name":"MercadoLibre Inc.","last":1668.72,"chg_pct":-7.813,"turnover":4026754857.6},{"ticker":"DASH","name":"DoorDash Inc. Class A","last":168.44,"chg_pct":-6.099,"turnover":1335816620.36},{"ticker":"CHTR","name":"Charter Communications Inc. Class A New","last":102.18,"chg_pct":-5.92,"turnover":244946713.44000003},{"ticker":"NVR","name":"NVR Inc.","last":5727.77,"chg_pct":-4.277,"turnover":261146217.61},{"ticker":"MSTR","name":"Strategy Inc Class A","last":139.82,"chg_pct":-4.239,"turnover":2196541299.7799997},{"ticker":"RDDT","name":"Reddit Inc. Class A","last":138.45,"chg_pct":-4.021,"turnover":1091588949.75},{"ticker":"SKYD","name":"Skydance Corporation Class B","last":7.49,"chg_pct":-3.604,"turnover":145712362.46},{"ticker":"PYPL","name":"PayPal Holdings Inc.","last":54.99,"chg_pct":-3.56,"turnover":669448534.95},{"ticker":"VZ","name":"Verizon Communications Inc.","last":43.1,"chg_pct":-3.493,"turnover":1950076050.4}],"turnover":[{"ticker":"TSLA","name":"Tesla Inc.","last":391.62,"chg_pct":5.212,"turnover":20791609814.94},{"ticker":"MU","name":"Micron Technology Inc.","last":903.7,"chg_pct":2.98,"turnover":20648983802.3},{"ticker":"NVDA","name":"NVIDIA Corporation","last":216.0,"chg_pct":2.389,"turnover":19619600544.0},{"ticker":"META","name":"Meta Platforms Inc. Class A","last":630.56,"chg_pct":-1.877,"turnover":19493274346.559998},{"ticker":"AAPL","name":"Apple Inc.","last":343.91,"chg_pct":-1.097,"turnover":14700023697.1},{"ticker":"MSFT","name":"Microsoft Corporation","last":532.6,"chg_pct":1.542,"turnover":10130704967.6},{"ticker":"INTC","name":"Intel Corporation","last":90.47,"chg_pct":4.036,"turnover":8933406410.82},{"ticker":"AMD","name":"Advanced Micro Devices Inc.","last":531.28,"chg_pct":2.804,"turnover":8923981882.8},{"ticker":"SNDK","name":"Sandisk Corporation","last":1255.58,"chg_pct":1.418,"turnover":8430181335.339999},{"ticker":"AMZN","name":"Amazon.com Inc.","last":249.09,"chg_pct":0.44,"turnover":8144376664.9800005}],"source":"Nasdaq 批量快照（当日成交额 = 最新价 × 成交量）","valid":512,"pool_size":514,"asof":"2026-10-26","kind":"收盘"},"quant":{"ok":true,"asof":"2026-10-23","generated_at":"2026-10-27 00:30:24","action":"建仓","action_reason":"实盘尚无持仓，按当前排名建仓","capital":null,"target_gross":0.8,"cash_weight":0.2,"risk":{"level":2,"scale":0.8,"tier_note":"二级警戒（分位 <30%）：权益 ×0.8","percentile":27.0,"kill_on":false,"kill_active":false,"kill_target_mode":"core_only","drawdown":0.0,"peak_net_liq":1000000.0},"targets":[{"ticker":"SPY","role":"core","role_cn":"核心","weight":0.56},{"ticker":"XLE","role":"satellite","role_cn":"能源","weight":0.08},{"ticker":"XLP","role":"satellite","role_cn":"必选消费","weight":0.08},{"ticker":"XLV","role":"satellite","role_cn":"医疗","weight":0.08}],"stops":[],"compliance":{"position_ratio":0.0,"min_ratio":0.5,"blocking":true,"n_positions":0,"cum_empty_days":0,"source":"按目标权重估算 · --no-ib","alerts":[{"level":"violation","message":"持仓率 0.0% 已跌破合规底线 50%"},{"level":"violation","message":"今日账户没有任何非现金持仓"},{"level":"info","message":"未取到 IB 实时持仓，当前为按目标权重估算 · --no-ib"}]},"provenance":{"config_hash":"c3d81200c444","data_hash":"edc0f0b281e1","tr_data_hash":"56f427fecd60","basis_requested":"total_return","actual_price_basis":"raw_close","basis_fallback":true,"basis_note":"股息复权覆盖不足（108/600=18% < 闸门 90%），**整体退回 raw close**：只对一部分标的复权会造成横截面偏置，比完全不调更糟","data_files":{"raw":"spec7/outputs/raw/daily_close_2016-01-01_2026-10-25.csv.gz","tr":"data/prices_tr_2016-01-01_2026-10-25.csv.gz"}},"data_quality":{"offline":true,"stale_tickers":[]},"redacted":true},"orders":{"ok":true,"rows":[],"today":"2026-10-27","n_today":15,"columns":["下单时间","代码","方向","目标金额","股数","限价","成交股数","成交均价","订单状态","模式","备注"],"redacted_rows":30,"redacted":true}};</script>
+<script>
+(function(){
+  var D = window.__DASH__ || {};
+  function fmt(v, d){ if(v===null||v===undefined||isNaN(v)) return '—'; return Number(v).toFixed(d===undefined?2:d); }
+  function pct(v){ if(v===null||v===undefined||isNaN(v)) return '—';
+    var s = (v>0?'+':'') + Number(v).toFixed(2) + '%'; return s; }
+  function cls(v){ if(v===null||v===undefined||isNaN(v)) return 'flat';
+    return v>0.0001?'up':(v<-0.0001?'down':'flat'); }
+  function money(v){ if(v===null||v===undefined||isNaN(v)) return '—';
+    if(v>=1e8) return (v/1e8).toFixed(2)+'亿';
+    if(v>=1e4) return (v/1e4).toFixed(2)+'万';
+    return Number(v).toFixed(0); }
+
+  // 加载 ECharts：两个 CDN 依次尝试，并且**带超时**。
+  // 只处理 onerror 不够——网络被墙时浏览器可能既不报错也不加载（一直 pending），
+  // 那种情况下页面会永远停在"图表区空白"，正好踩中"不能白屏"这条验收。
+  function loadJS(urls, cb){
+    var i = 0, done = false;
+    function finish(ok){
+      if(done) return;
+      done = true;
+      cb(ok);
+    }
+    var guard = setTimeout(function(){ finish(!!window.echarts); }, 8000);
+    function next(){
+      if(i>=urls.length){ clearTimeout(guard); finish(!!window.echarts); return; }
+      var s = document.createElement('script');
+      s.src = urls[i++]; s.async = true;
+      s.onload = function(){
+        if(window.echarts){ clearTimeout(guard); finish(true); }
+        else next();
+      };
+      s.onerror = next;
+      document.head.appendChild(s);
+    }
+    next();
+  }
+
+  function sectorColor(v){
+    // 红涨绿跌；幅度越大颜色越浓
+    if(v===null||v===undefined||isNaN(v)) return '#39414f';
+    var m = Math.min(Math.abs(v)/1.5, 1);           // 1.5% 以上视为最浓
+    var a = 0.25 + 0.65*m;
+    return v>=0 ? 'rgba(224,56,74,'+a.toFixed(3)+')' : 'rgba(46,184,114,'+a.toFixed(3)+')';
+  }
+
+  function drawSectorFallback(){
+    var rows = (D.sectors && D.sectors.rows) || [];
+    var el = document.getElementById('sectorTiles');
+    if(!el) return;
+    el.innerHTML = rows.map(function(r){
+      return '<div class="tile" style="background:'+sectorColor(r.chg_pct)+'">'
+        + '<div class="tk">'+r.ticker+'</div><div class="nm">'+r.name+'</div>'
+        + '<div class="pc">'+pct(r.chg_pct)+'</div></div>';
+    }).join('');
+    el.style.display = 'grid';
+  }
+
+  function drawMomentumFallback(){
+    var rows = (D.sectors && D.sectors.rows) || [];
+    var el = document.getElementById('momBars');
+    if(!el) return;
+    var top = rows.filter(function(r){return r.mom10!==null;})
+                  .slice().sort(function(a,b){return b.mom10-a.mom10;})
+                  .slice(0,3).map(function(r){return r.ticker;});
+    var mx = Math.max.apply(null, rows.map(function(r){
+      return Math.abs(r.mom10||0); }).concat([0.5]));
+    el.innerHTML = rows.slice().sort(function(a,b){return b.mom10-a.mom10;})
+      .map(function(r){
+        var w = Math.abs(r.mom10||0)/mx*100;
+        var hi = top.indexOf(r.ticker)>=0;
+        return '<div class="brow"><span>'+r.ticker+(hi?' ★':'')+'</span>'
+          + '<span class="bar"><i style="width:'+w.toFixed(1)+'%;background:'
+          + (r.mom10>=0?'var(--up)':'var(--down)')+'"></i></span>'
+          + '<span class="'+cls(r.mom10)+'">'+pct(r.mom10)+'</span></div>';
+      }).join('');
+    el.style.display = 'flex';
+  }
+
+  function drawSparkFallback(){
+    var s = D.spark || {};
+    var el = document.getElementById('sparkFallback');
+    if(!el || !s.ok) return;
+    var v = s.values||[], mn = Math.min.apply(null, v), mx = Math.max.apply(null, v);
+    el.innerHTML = '<div class="bars">' + v.map(function(x){
+      var h = (mx-mn)<1e-9 ? 50 : ((x-mn)/(mx-mn)*100);
+      return '<span style="display:inline-block;width:'
+        + (100/v.length).toFixed(2) + '%;height:' + Math.max(h,3).toFixed(1)
+        + '%;background:var(--accent);vertical-align:bottom"></span>';
+    }).join('') + '</div>';
+    el.style.display = 'block';
+  }
+
+  function drawCharts(){
+    if(!window.echarts){ drawSectorFallback(); drawMomentumFallback(); drawSparkFallback();
+      var n = document.getElementById('chartNote'); if(n) n.style.display='block'; return; }
+    var rows = (D.sectors && D.sectors.rows) || [];
+    // 行业 Treemap：面积按 |涨跌幅| 加权，需要一点最小值否则 0 值不显示
+    var tre = echarts.init(document.getElementById('sectorTreemap'));
+    tre.setOption({
+      tooltip:{formatter:function(p){ return p.name+'<br/>涨跌 '+p.data.v+'%'; }},
+      series:[{ type:'treemap', roam:false, nodeClick:false, breadcrumb:{show:false},
+        data: rows.filter(function(r){return r.chg_pct!==null;}).map(function(r){
+          return { name:r.ticker+' '+r.name, value:Math.max(Math.abs(r.chg_pct),0.08),
+                   v:(r.chg_pct||0).toFixed(2),
+                   itemStyle:{color:sectorColor(r.chg_pct)} };
+        }),
+        label:{ show:true, formatter:function(p){ return p.name.split(' ')[0]
+          +'\n'+p.data.v+'%'; }, fontSize:12 },
+        itemStyle:{ borderColor:'#0e1116', borderWidth:2 } }]
+    });
+    // 10 日动量柱
+    var mom = rows.filter(function(r){return r.mom10!==null;})
+                  .sort(function(a,b){return b.mom10-a.mom10;});
+    var top3 = mom.slice(0,3).map(function(r){return r.ticker;});
+    var mb = echarts.init(document.getElementById('momChart'));
+    mb.setOption({
+      grid:{left:44,right:16,top:16,bottom:26},
+      tooltip:{trigger:'axis'},
+      xAxis:{type:'category',data:mom.map(function(r){return r.ticker;}),
+        axisLabel:{color:'#8b98a9',fontSize:11}},
+      yAxis:{type:'value',axisLabel:{formatter:'{value}%',color:'#8b98a9',fontSize:10}},
+      series:[{type:'bar',barWidth:'58%',
+        data:mom.map(function(r){
+          var top = top3.indexOf(r.ticker)>=0;
+          return { value:+r.mom10.toFixed(3),
+            itemStyle:{ color: top ? (r.mom10>=0?'#e0384a':'#2eb872')
+              : (r.mom10>=0?'rgba(224,56,74,.45)':'rgba(46,184,114,.45)'),
+              borderColor: top ? '#ffd166' : 'transparent', borderWidth: top?1.4:0 } };
+        })}]
+    });
+    // SPY 近月走势
+    if(D.spark && D.spark.ok){
+      var sp = echarts.init(document.getElementById('sparkChart'));
+      sp.setOption({
+        grid:{left:48,right:12,top:14,bottom:24},
+        tooltip:{trigger:'axis'},
+        xAxis:{type:'category',data:D.spark.dates,
+          axisLabel:{color:'#8b98a9',fontSize:10,interval:Math.max(1,Math.floor(D.spark.dates.length/5))}},
+        yAxis:{type:'value',scale:true,axisLabel:{color:'#8b98a9',fontSize:10}},
+        series:[{type:'line',smooth:true,symbol:'none',
+          lineStyle:{color:'#4c8dff',width:2.2},
+          areaStyle:{color:'rgba(76,141,255,.16)'},
+          data:D.spark.values}]
+      });
+    } else { drawSparkFallback(); }
+    window.addEventListener('resize', function(){
+      try{ tre.resize(); mb.resize();
+        var sp=echarts.getInstanceByDom(document.getElementById('sparkChart'));
+        if(sp) sp.resize(); }catch(e){}
+    });
+  }
+
+  function fill(){
+    // 大盘卡片
+    var mk = (D.market && D.market.rows) || [];
+    document.getElementById('marketGrid').innerHTML = mk.map(function(r){
+      var na = (r.last === null || r.last === undefined);
+      // 取不到数的格子**不留白**也不编数：显示"数据暂不可用"+ 具体原因
+      var px  = na ? '<div class="px na">数据暂不可用</div>' : '<div class="px">'+fmt(r.last)+'</div>';
+      var pc  = na ? '' : '<div class="pc '+cls(r.chg_pct)+'">'+pct(r.chg_pct)+'</div>';
+      var px2 = r.proxy ? '<div class="px-tag">'+r.proxy+'</div>' : '';
+      return '<div class="card mkt'+(na?' is-na':'')+'"><div class="tk">'+r.ticker+' · '+r.label+'</div>'
+        + px + pc + px2
+        + '<div class="tk" style="margin-top:4px">源：'+(r.source||'—')
+        + (r.asof_ts ? '｜' + r.asof_ts : '') + '</div></div>';
+    }).join('');
+    // 三张异动表
+    function table(rows, keyFmt){
+      if(!rows || !rows.length) return '<div class="note">数据暂不可用</div>';
+      return '<table><thead><tr><th>代码</th><th>名称</th><th>涨跌</th><th>最新价</th>'
+        + '<th>成交额</th></tr></thead><tbody>'
+        + rows.map(function(r){
+          return '<tr><td>'+r.ticker+'</td><td style="text-align:left;color:var(--dim)">'
+            + (r.name||'—')+'</td><td class="'+cls(r.chg_pct)+'">'+pct(r.chg_pct)
+            + '</td><td>'+fmt(r.last)+'</td><td>'+money(r.turnover)+'</td></tr>';
+        }).join('') + '</tbody></table>';
+    }
+    var mv = D.movers || {};
+    document.getElementById('tblGainers').innerHTML = table(mv.gainers);
+    document.getElementById('tblLosers').innerHTML = table(mv.losers);
+    document.getElementById('tblTurnover').innerHTML = table(mv.turnover);
+    // 量化面板 chips
+    var q = D.quant || {}, rk = q.risk || {};
+    document.getElementById('quantChips').innerHTML = q.ok ? ([
+      ['信号日期', q.asof||'—'], ['今日动作', q.action||'—'],
+      ['BTC 分位', (rk.percentile===null||rk.percentile===undefined)?'—':(rk.percentile+'%')],
+      ['风控档位', rk.tier_note||'—'],
+      ['目标总仓位', ((q.target_gross||0)*100).toFixed(0)+'%'],
+      ['权益系数', rk.scale===undefined?'—':('×'+rk.scale)],
+      ['kill switch', rk.kill_active?'已触发':'未触发'],
+      ['回撤', (rk.drawdown===undefined)?'—':((rk.drawdown*100).toFixed(1)+'%')]
+    ].map(function(p){ return '<span class="chip">'+p[0]+' <b>'+p[1]+'</b></span>'; }).join('')) : '';
+    document.getElementById('quantReason').textContent = q.action_reason || '';
+    // 目标权重
+    var tg = (q.targets||[]);
+    var q = D.quant || {};
+    var isPub = !!q.redacted;          // 公开版：只有权重，没有金额/股数
+    document.getElementById('targetTable').innerHTML = tg.length
+      ? ('<table><thead><tr><th>标的</th><th>角色</th><th>权重</th>'
+        + (isPub ? '' : '<th>金额</th><th>参考价</th>') + '</tr></thead><tbody>'
+        + tg.map(function(t){
+          return '<tr><td>'+t.ticker+'</td><td style="text-align:left;color:var(--dim)">'
+            + (t.role_cn||t.role||'—')+'</td><td>'+((t.weight||0)*100).toFixed(1)+'%</td>'
+            + (isPub ? '' : '<td>'+money(t.amount)+'</td><td>'+fmt(t.ref_price)+'</td>')
+            + '</tr>';
+        }).join('') + '</tbody></table>'
+        + (isPub ? '<div class="sub" style="margin-top:6px">公开版：金额、股数与本金已隐藏，'
+                 + '只展示目标权重。</div>' : ''))
+      : '<div class="note">信号里没有目标持仓</div>';
+    // 订单
+    var od = D.orders || {};
+    var cols = od.columns || [];
+    document.getElementById('orderTable').innerHTML = od.redacted
+      ? ('<div class="note">公开版不展示订单明细（本机共 '
+         + (od.redacted_rows||0) + ' 笔）。要看去本地 spec14/outputs/trade_log.csv。</div>')
+      : (od.ok
+        ? ('<table><thead><tr>' + cols.map(function(c){return '<th>'+c+'</th>';}).join('')
+          + '</tr></thead><tbody>'
+          + od.rows.map(function(r){
+            return '<tr>' + cols.map(function(c){ return '<td>'+(r[c]||'')+'</td>'; }).join('') + '</tr>';
+          }).join('') + '</tbody></table>')
+        : '<div class="note">'+(od.reason||'订单记录暂不可用')+'</div>');
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    fill();
+    if(D.spark && D.spark.ok){ var sc=document.getElementById('sparkChart');
+      if(sc) sc.style.height='190px'; }
+    loadJS(window.__CDNS__, function(ok){
+      if(!ok){ document.getElementById('chartNote').style.display='block'; }
+      drawCharts();
+    });
+  });
+})();
+</script>
+</body>
+</html>
